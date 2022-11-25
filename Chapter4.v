@@ -63,3 +63,62 @@ Proof.
     simpl.
     ring.
 Qed.
+
+Fixpoint evenb n :=
+  match n with
+    0 => true 
+  | 1 => false
+  | S (S p) => evenb p 
+  end.
+
+(*Book Version (I really hate this proof)*)
+Lemma evenb_p : forall n, evenb n = true -> exists x, n = 2 * x.
+Proof.
+    (*Assert a stronger statement (Oh god how would you ever find this)*)
+    assert (Main: forall n, (evenb n = true -> exists x, n = 2 * x) /\
+    (evenb (S n) = true -> exists x, S n = 2 * x)).
+
+    induction n.
+
+    (*Base Case*)
+    split.
+    exists 0. (*Automatically applies intro*)
+    ring.
+    simpl. (*expands evenb 1 to false *)
+    intros H. (*Move the contradition to the hyp*)
+    discriminate. (*discard it*)
+
+    (*Inductive Step*)
+    split.
+    destruct IHn as [_ IHn']. (*discard the non-S n case*)
+    exact IHn'.
+    simpl evenb.
+    intros H.
+    destruct IHn as [IHn' _].
+    assert (H' : exists x, n = 2 * x).
+    apply IHn'.
+    exact H.
+    destruct H' as [x q].
+    exists (x + 1).
+    rewrite q.
+    ring.
+
+    intros n ev.
+    destruct (Main n) as [H _].
+    apply H.
+    exact ev.
+Qed.
+
+(*My version*)
+(*
+Lemma evenb_p_mine : forall n, evenb n = true -> exists x, n = 2 * x.
+Proof.
+    induction n.
+    simpl evenb.
+    exists 0.
+    ring.
+
+    destruct evenb.
+    intuition.
+Qed.
+*)
